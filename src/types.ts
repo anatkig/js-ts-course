@@ -20,6 +20,8 @@ export interface QuizQuestion {
   explanation: string;
 }
 
+export type TestQuestion = QuizQuestion;
+
 export interface Module {
   id: string;
   title: string;
