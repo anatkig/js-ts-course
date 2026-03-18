@@ -3,6 +3,47 @@ import { course } from '../data';
 import { useProgress } from '../context/ProgressContext';
 import type { QuizQuestion } from '../types';
 
+/* ── map final-test questions to the most relevant module ── */
+const finalTestModuleMap: Record<string, number> = {
+  'ft-1':  5,  // typeof typeof → Type Coercion
+  'ft-2':  2,  // var/setTimeout loop → Closures & Hoisting
+  'ft-3':  5,  // [1,2,3].map(parseInt) → Type Coercion
+  'ft-4':  16, // never exhaustive → Type Guards & Narrowing
+  'ft-5':  7,  // Promise chain → Promises & Async/Await
+  'ft-6':  14, // Partial / Required → Advanced Types
+  'ft-7':  5,  // 0.1 + 0.2 → Type Coercion
+  'ft-8':  2,  // TDZ → Scope, Closures & Hoisting
+  'ft-9':  16, // never return type → Type Guards & Narrowing
+  'ft-10': 5,  // [] == false → Type Coercion
+  'ft-11': 10, // Proxy vs defineProperty → Proxy & Reflect
+  'ft-12': 9,  // Generator spread → Iterators & Generators
+  'ft-13': 14, // Branded types → Advanced Types
+  'ft-14': 8,  // Event loop order → Event Loop & Microtasks
+  'ft-15': 14, // Conditional type distribution → Advanced Types
+  'ft-16': 7,  // Promise.all → Promises & Async/Await
+  'ft-17': 13, // satisfies → TypeScript Fundamentals
+  'ft-18': 11, // WeakMap GC → WeakRef, WeakMap & Memory
+  'ft-19': 12, // ESM live bindings → Module Systems
+  'ft-20': 14, // Parameters<T> → Advanced Types
+};
+
+function getSourceModule(questionId: string): { number: number; title: string } | null {
+  // Module test questions follow the pattern "modN-qM"
+  const moduleMatch = questionId.match(/^mod(\d+)-q/);
+  if (moduleMatch) {
+    const idx = parseInt(moduleMatch[1], 10) - 1;
+    const mod = course.modules[idx];
+    if (mod) return { number: idx + 1, title: mod.title };
+  }
+  // Final test questions are mapped explicitly
+  const modNum = finalTestModuleMap[questionId];
+  if (modNum) {
+    const mod = course.modules[modNum - 1];
+    if (mod) return { number: modNum, title: mod.title };
+  }
+  return null;
+}
+
 function getAllQuestions(): QuizQuestion[] {
   const questions: QuizQuestion[] = [];
   for (const mod of course.modules) {
@@ -75,19 +116,24 @@ export function RandomQuestion({ onClose }: Props) {
               })}
             </div>
             {revealed && selected === question.correctAnswer && (
-              <p className="rq-explanation">{question.explanation}</p>
-            )}
-            {revealed && selected === question.correctAnswer && (
-              <div className="rq-actions">
-                <span className="rq-streak">🔥 Streak: {streak}</span>
-                <button className="btn btn-primary" onClick={next}>Next Random Question →</button>
-              </div>
+              <>
+                <p className="rq-explanation">{question.explanation}</p>
+                {(() => { const src = getSourceModule(question.id); return src ? <p className="rq-source">📖 Covered in <strong>Module {src.number}: {src.title}</strong></p> : null; })()}
+                <div className="rq-actions">
+                  <span className="rq-streak">🔥 Streak: {streak}</span>
+                  <button className="btn btn-primary" onClick={next}>Next Random Question →</button>
+                </div>
+              </>
             )}
           </>
         )}
         {showStreakEnd && (
           <div className="rq-streak-end">
-            <p>OK. This one is incorrect. However, that was <strong>{endedStreak}</strong> correct answer{endedStreak !== 1 ? 's' : ''} in a row. Congrats!</p>
+            {endedStreak > 0
+              ? <p>Incorrect. However, that was <strong>{endedStreak}</strong> correct answer{endedStreak !== 1 ? 's' : ''} in a row. Congrats!</p>
+              : <p>Incorrect.</p>}
+            <p className="rq-explanation">{question.explanation}</p>
+            {(() => { const src = getSourceModule(question.id); return src ? <p className="rq-source">📖 Review <strong>Module {src.number}: {src.title}</strong></p> : null; })()}
             <button className="btn btn-primary" onClick={next}>Continue →</button>
           </div>
         )}

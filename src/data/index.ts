@@ -18,6 +18,7 @@ import { module15 } from './module15';
 import { module16 } from './module16';
 import { module17 } from './module17';
 import { module18 } from './module18';
+import { finalTestQuestions } from './finalTest';
 
 export { getRandomLevelTest } from './levelTest';
 export { finalTestQuestions } from './finalTest';
@@ -25,6 +26,8 @@ export { quickLineChallenges } from './quickLines';
 
 export const course: Course = {
   title: 'JavaScript & TypeScript Mastery',
+  description: 'A comprehensive course covering JavaScript and TypeScript from fundamentals to advanced patterns.',
+  finalTest: finalTestQuestions,
   modules: [
     module1,
     module2,
